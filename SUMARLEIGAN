@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SUMARLEIGAN</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --sun: #f9c946;
+    --sky: #5bc8f5;
+    --grass: #4caf7d;
+    --coral: #f47c5a;
+    --sand: #fdf3dc;
+    --deep: #1a3a2a;
+    --teal: #3cb8a0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: linear-gradient(160deg, #d4f5e9 0%, #fffde7 50%, #ffe0cc 100%);
+    min-height: 100vh;
+    color: var(--deep);
+  }
+
+  .hero {
+    text-align: center;
+    padding: 80px 20px 60px;
+    background: linear-gradient(135deg, #a8edca 0%, #fde98e 60%, #fbc49a 100%);
+    border-bottom: 4px solid var(--sun);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.15'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 900;
+    color: var(--deep);
+    line-height: 1.1;
+    position: relative;
+  }
+  .hero h1 span { color: var(--grass); }
+
+  nav {
+    display: flex;
+    justify-content: center;
+    background: var(--deep);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+  }
+  nav a {
+    display: block;
+    padding: 16px 40px;
+    color: #b8f5d8;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: background 0.2s, color 0.2s;
+  }
+  nav a:hover { background: var(--grass); color: #fff; }
+
+  section {
+    max-width: 860px;
+    margin: 60px auto;
+    padding: 0 20px;
+  }
+  section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 28px;
+    color: var(--deep);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  section h2::after {
+    content: '';
+    flex: 1;
+    height: 3px;
+    background: linear-gradient(90deg, var(--sun), var(--sky));
+    border-radius: 2px;
+    margin-left: 12px;
+  }
+
+  .booking-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 36px;
+    box-shadow: 0 8px 40px rgba(76,175,125,0.13);
+    border: 2px solid #d4f5e2;
+  }
+
+  .instruction {
+    background: linear-gradient(90deg, #e8fdf3, #fffde7);
+    border-left: 4px solid var(--grass);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 24px;
+    font-size: 0.95rem;
+    color: #2d5a3d;
+  }
+  #step-msg { font-weight: 600; color: var(--grass); }
+
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .cal-header button {
+    background: var(--deep);
+    color: #fff;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cal-header button:hover { background: var(--grass); }
+  .cal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--deep);
+  }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .cal-dayname {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #888;
+    padding: 4px 0 8px;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, transform 0.1s;
+    position: relative;
+    user-select: none;
+    border: 2px solid transparent;
+  }
+  .cal-day:hover:not(.disabled):not(.empty) {
+    background: #e8fdf3;
+    border-color: var(--grass);
+    transform: scale(1.08);
+    z-index: 2;
+  }
+  .cal-day.disabled { color: #ccc; cursor: default; }
+  .cal-day.empty { cursor: default; }
+  .cal-day.checkin {
+    background: var(--grass) !important;
+    color: #fff !important;
+    font-weight: 700;
+    border-color: #2d8a55;
+  }
+  .cal-day.checkout {
+    background: var(--coral) !important;
+    color: #fff !important;
+    font-weight: 700;
+    border-color: #c0472a;
+  }
+  .cal-day.inrange {
+    background: #cff7e6;
+    color: var(--deep);
+    border-radius: 0;
+  }
+
+  .booking-summary {
+    margin-top: 24px;
+    background: linear-gradient(135deg, #e8fdf3 0%, #fffde7 100%);
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: none;
+    border: 1.5px solid #b2f0d0;
+  }
+  .booking-summary.visible { display: block; }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 0.95rem;
+    border-bottom: 1px solid #d4f5e2;
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row .label { color: #555; }
+  .summary-row .value { font-weight: 600; color: var(--deep); }
+  .summary-row.total .label { font-weight: 700; font-size: 1.05rem; }
+  .summary-row.total .value { color: var(--grass); font-size: 1.2rem; }
+
+  .price-breakdown {
+    margin-top: 8px;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.6);
+    border-radius: 8px;
+    font-size: 0.82rem;
+    color: #555;
+    line-height: 1.7;
+  }
+
+  .btn-book {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--grass), var(--teal));
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    box-shadow: 0 4px 20px rgba(76,175,125,0.3);
+  }
+  .btn-book:hover { opacity: 0.9; transform: translateY(-2px); }
+  .btn-reset {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    background: transparent;
+    color: #999;
+    border: 1.5px solid #ddd;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-reset:hover { border-color: var(--coral); color: var(--coral); }
+
+  .contact-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 36px;
+    box-shadow: 0 8px 40px rgba(91,200,245,0.12);
+    border: 2px solid #d0eeff;
+  }
+  .contact-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .contact-form .full { grid-column: 1 / -1; }
+  .contact-form label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 6px;
+  }
+  .contact-form input,
+  .contact-form textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid #e0f0ff;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    color: var(--deep);
+    background: #f9fdff;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .contact-form input:focus,
+  .contact-form textarea:focus { border-color: var(--sky); }
+  .contact-form textarea { resize: vertical; min-height: 110px; }
+  .btn-send {
+    display: inline-block;
+    padding: 14px 40px;
+    background: linear-gradient(135deg, var(--sky), #3a9fd4);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    box-shadow: 0 4px 20px rgba(91,200,245,0.3);
+  }
+  .btn-send:hover { opacity: 0.9; transform: translateY(-2px); }
+  .contact-info {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 2px dashed #d0eeff;
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+  }
+  .contact-info span { font-size: 0.95rem; color: #444; }
+  .contact-info strong { color: var(--deep); }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,30,20,0.65);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .overlay.open { display: flex; }
+  .payment-box {
+    background: #fff;
+    border-radius: 24px;
+    padding: 40px;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.2);
+    position: relative;
+    animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes popIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .payment-box h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    margin-bottom: 6px;
+    color: var(--deep);
+  }
+  .payment-box .sub { font-size: 0.9rem; color: #888; margin-bottom: 24px; }
+  .pay-summary {
+    background: linear-gradient(135deg, #e8fdf3, #fffde7);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    font-size: 0.95rem;
+    color: var(--deep);
+  }
+  .pay-summary strong { display: block; font-size: 1.1rem; margin-top: 6px; color: var(--grass); }
+  .pay-fields { display: grid; gap: 14px; }
+  .pay-fields label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #777;
+    display: block;
+    margin-bottom: 5px;
+  }
+  .pay-fields input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid #e0f0ee;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .pay-fields input:focus { border-color: var(--teal); }
+  .pay-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .btn-pay {
+    width: 100%;
+    margin-top: 20px;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--sun), var(--coral));
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    box-shadow: 0 4px 20px rgba(244,124,90,0.3);
+  }
+  .btn-pay:hover { opacity: 0.9; transform: translateY(-2px); }
+  .btn-close-pay {
+    position: absolute;
+    top: 16px; right: 20px;
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+    color: #aaa;
+    line-height: 1;
+  }
+  .btn-close-pay:hover { color: var(--coral); }
+
+  .success-box {
+    text-align: center;
+    padding: 10px 0;
+    display: none;
+  }
+  .success-box.show { display: block; }
+  .success-icon {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, var(--grass), var(--teal));
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .success-icon svg { width: 32px; height: 32px; }
+  .success-box h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    color: var(--deep);
+  }
+  .success-box p { color: #666; font-size: 0.95rem; line-height: 1.6; }
+
+  footer {
+    text-align: center;
+    padding: 30px 20px;
+    background: var(--deep);
+    color: #8db89e;
+    font-size: 0.85rem;
+    margin-top: 60px;
+  }
+
+  @media (max-width: 600px) {
+    .contact-form { grid-template-columns: 1fr; }
+    .pay-row { grid-template-columns: 1fr; }
+    .booking-card, .contact-card { padding: 22px; }
+    nav a { padding: 14px 20px; font-size: 0.82rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>SUMAR<span>LEIGAN</span></h1>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="#bokun">Bóka Tjald</a>
+  <a href="#samband">Hafa Samband</a>
+</nav>
+
+<!-- BOOKING -->
+<section id="bokun">
+  <h2>Bóka Tjald</h2>
+  <div class="booking-card">
+    <div class="instruction">
+      <span id="step-msg">Skref 1: Veldu innritunardagsetningu</span>
+    </div>
+
+    <div class="cal-header">
+      <button id="prev-btn">&#8592;</button>
+      <div class="cal-title" id="cal-title"></div>
+      <button id="next-btn">&#8594;</button>
+    </div>
+
+    <div class="cal-grid" id="cal-grid"></div>
+
+    <div class="booking-summary" id="booking-summary">
+      <div class="summary-row">
+        <span class="label">Innritun</span>
+        <span class="value" id="sum-checkin"></span>
+      </div>
+      <div class="summary-row">
+        <span class="label">Útritun</span>
+        <span class="value" id="sum-checkout"></span>
+      </div>
+      <div class="summary-row">
+        <span class="label">Nætur</span>
+        <span class="value" id="sum-nights"></span>
+      </div>
+      <div class="summary-row total">
+        <span class="label">Samtals</span>
+        <span class="value" id="sum-total"></span>
+      </div>
+      <div class="price-breakdown" id="price-breakdown"></div>
+    </div>
+
+    <button class="btn-book" id="btn-book" style="display:none" onclick="openPayment()">Staðfesta Bókun</button>
+    <button class="btn-reset" id="btn-reset" style="display:none" onclick="resetCalendar()">Byrja aftur</button>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="samband">
+  <h2>Hafa Samband</h2>
+  <div class="contact-card">
+    <form class="contact-form" onsubmit="sendMsg(event)">
+      <div>
+        <label>Nafn</label>
+        <input type="text" placeholder="Nafnið þitt" required/>
+      </div>
+      <div>
+        <label>Netfang</label>
+        <input type="email" placeholder="netfang@example.is" required/>
+      </div>
+      <div class="full">
+        <label>Skilaboð</label>
+        <textarea placeholder="Hvað getum við gert fyrir þig?" required></textarea>
+      </div>
+      <div class="full">
+        <button type="submit" class="btn-send">Senda Skilaboð</button>
+      </div>
+    </form>
+    <div class="contact-info">
+      <span><strong>Sími:</strong> 782 1709</span>
+      <span><strong>Netfang:</strong> Sumarleigan@gmail.com</span>
+    </div>
+  </div>
+</section>
+
+<!-- PAYMENT OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="payment-box">
+    <button class="btn-close-pay" onclick="closePayment()">x</button>
+
+    <div id="pay-form-wrap">
+      <h3>Greiðsluferli</h3>
+      <p class="sub">Sláðu inn kortaupplýsingar til að staðfesta bókun</p>
+
+      <div class="pay-summary" id="pay-summary-text"></div>
+
+      <div class="pay-fields">
+        <div>
+          <label>Nafn á korti</label>
+          <input type="text" placeholder="Jón Jónsson" id="card-name"/>
+        </div>
+        <div>
+          <label>Kortanúmer</label>
+          <input type="text" placeholder="1234 5678 9012 3456" maxlength="19" id="card-num" oninput="formatCard(this)"/>
+        </div>
+        <div class="pay-row">
+          <div>
+            <label>Gildistími</label>
+            <input type="text" placeholder="MM/AA" maxlength="5" id="card-exp" oninput="formatExp(this)"/>
+          </div>
+          <div>
+            <label>CVC</label>
+            <input type="text" placeholder="123" maxlength="3" id="card-cvc"/>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-pay" onclick="confirmPayment()">Greiðsla Staðfest</button>
+    </div>
+
+    <div class="success-box" id="success-box">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <h3>Bókun staðfest!</h3>
+      <p>Takk fyrir bókun þína hjá SUMARLEIGAN. Staðfestingarpóstur hefur verið sendur á netfangið þitt. Við hlökkum til að sjá þig!</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  &copy; 2025 SUMARLEIGAN &mdash; Allar réttindir fyrirvараðar
+</footer>
+
+<script>
+var today = new Date();
+today.setHours(0,0,0,0);
+
+var viewYear = today.getFullYear();
+var viewMonth = today.getMonth();
+
+var checkinDate = null;
+var checkoutDate = null;
+var step = 0;
+
+// ---- UPDATED PRICING ----
+var firstNightPrice = 24990;   // 1st night: 24.990 kr
+var extraNightPrice = 4990;    // Each additional night: 4.990 kr
+
+function calcTotal(nights) {
+  if (nights <= 0) return 0;
+  return firstNightPrice + (nights - 1) * extraNightPrice;
+}
+// -------------------------
+
+var monthNames = ['Janúar','Febrúar','Mars','Apríl','Maí','Júní','Júlí','Ágúst','September','Október','Nóvember','Desember'];
+var dayNames = ['Sun','Mán','Þri','Mið','Fim','Fös','Lau'];
+
+function renderCalendar() {
+  var title = document.getElementById('cal-title');
+  title.textContent = monthNames[viewMonth] + ' ' + viewYear;
+
+  var grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  for (var d = 0; d < 7; d++) {
+    var dn = document.createElement('div');
+    dn.className = 'cal-dayname';
+    dn.textContent = dayNames[d];
+    grid.appendChild(dn);
+  }
+
+  var firstDay = new Date(viewYear, viewMonth, 1).getDay();
+  var daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+  for (var e = 0; e < firstDay; e++) {
+    var empty = document.createElement('div');
+    empty.className = 'cal-day empty';
+    grid.appendChild(empty);
+  }
+
+  for (var day = 1; day <= daysInMonth; day++) {
+    var cell = document.createElement('div');
+    cell.className = 'cal-day';
+    cell.textContent = day;
+
+    var cellDate = new Date(viewYear, viewMonth, day);
+    cellDate.setHours(0,0,0,0);
+
+    if (cellDate < today) {
+      cell.classList.add('disabled');
+      grid.appendChild(cell);
+      continue;
+    }
+
+    if (checkinDate && cellDate.getTime() === checkinDate.getTime()) {
+      cell.classList.add('checkin');
+    }
+    if (checkoutDate && cellDate.getTime() === checkoutDate.getTime()) {
+      cell.classList.add('checkout');
+    }
+    if (checkinDate && checkoutDate && cellDate > checkinDate && cellDate < checkoutDate) {
+      cell.classList.add('inrange');
+    }
+
+    (function(d, cd) {
+      d.addEventListener('click', function() { handleDayClick(cd); });
+    })(cell, cellDate);
+
+    grid.appendChild(cell);
+  }
+}
+
+function handleDayClick(date) {
+  if (date < today) return;
+
+  if (step === 0) {
+    checkinDate = date;
+    checkoutDate = null;
+    step = 1;
+    document.getElementById('step-msg').textContent = 'Skref 2: Veldu útritunardag';
+    document.getElementById('btn-book').style.display = 'none';
+    document.getElementById('btn-reset').style.display = 'none';
+    document.getElementById('booking-summary').classList.remove('visible');
+    renderCalendar();
+  } else if (step === 1) {
+    if (date <= checkinDate) {
+      checkinDate = date;
+      checkoutDate = null;
+      document.getElementById('step-msg').textContent = 'Skref 2: Veldu útritunardag';
+      renderCalendar();
+      return;
+    }
+    checkoutDate = date;
+    step = 2;
+    document.getElementById('step-msg').textContent = 'Dagsetningar valdar - athugaðu samantekt!';
+    showSummary();
+    renderCalendar();
+  } else if (step === 2) {
+    resetCalendar();
+    checkinDate = date;
+    step = 1;
+    document.getElementById('step-msg').textContent = 'Skref 2: Veldu útritunardag';
+    renderCalendar();
+  }
+}
+
+function showSummary() {
+  var nights = Math.round((checkoutDate - checkinDate) / (1000*60*60*24));
+  var total = calcTotal(nights);
+
+  document.getElementById('sum-checkin').textContent = fmtDate(checkinDate);
+  document.getElementById('sum-checkout').textContent = fmtDate(checkoutDate);
+  document.getElementById('sum-nights').textContent = nights + ' nætur';
+  document.getElementById('sum-total').textContent = total.toLocaleString('is-IS') + ' kr.';
+
+  // Show price breakdown
+  var breakdown = '';
+  if (nights === 1) {
+    breakdown = '1. nótt: 24.990 kr.';
+  } else {
+    breakdown = '1. nótt: 24.990 kr.  +  ' + (nights - 1) + ' viðbótarnætur x 4.990 kr. = ' + ((nights - 1) * extraNightPrice).toLocaleString('is-IS') + ' kr.';
+  }
+  document.getElementById('price-breakdown').textContent = breakdown;
+
+  document.getElementById('booking-summary').classList.add('visible');
+  document.getElementById('btn-book').style.display = 'block';
+  document.getElementById('btn-reset').style.display = 'block';
+}
+
+function fmtDate(d) {
+  return d.getDate() + '. ' + monthNames[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function resetCalendar() {
+  checkinDate = null;
+  checkoutDate = null;
+  step = 0;
+  document.getElementById('step-msg').textContent = 'Skref 1: Veldu innritunardagsetningu';
+  document.getElementById('booking-summary').classList.remove('visible');
+  document.getElementById('btn-book').style.display = 'none';
+  document.getElementById('btn-reset').style.display = 'none';
+  renderCalendar();
+}
+
+document.getElementById('prev-btn').addEventListener('click', function() {
+  viewMonth--;
+  if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+  renderCalendar();
+});
+document.getElementById('next-btn').addEventListener('click', function() {
+  viewMonth++;
+  if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+  renderCalendar();
+});
+
+renderCalendar();
+
+function openPayment() {
+  if (!checkinDate || !checkoutDate) return;
+  var nights = Math.round((checkoutDate - checkinDate) / (1000*60*60*24));
+  var total = calcTotal(nights);
+  document.getElementById('pay-summary-text').innerHTML =
+    fmtDate(checkinDate) + ' &rarr; ' + fmtDate(checkoutDate) +
+    ' &nbsp;|&nbsp; ' + nights + ' nætur' +
+    '<strong>' + total.toLocaleString('is-IS') + ' kr.</strong>';
+  document.getElementById('pay-form-wrap').style.display = 'block';
+  document.getElementById('success-box').classList.remove('show');
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closePayment() {
+  document.getElementById('overlay').classList.remove('open');
+}
+
+function confirmPayment() {
+  var name = document.getElementById('card-name').value.trim();
+  var num = document.getElementById('card-num').value.trim();
+  var exp = document.getElementById('card-exp').value.trim();
+  var cvc = document.getElementById('card-cvc').value.trim();
+  if (!name || num.length < 19 || exp.length < 5 || cvc.length < 3) {
+    alert('Vinsamlegast fylltu út alla reiti.');
+    return;
+  }
+  document.getElementById('pay-form-wrap').style.display = 'none';
+  document.getElementById('success-box').classList.add('show');
+  resetCalendar();
+}
+
+function formatCard(el) {
+  var v = el.value.replace(/\D/g,'').substring(0,16);
+  el.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+
+function formatExp(el) {
+  var v = el.value.replace(/\D/g,'').substring(0,4);
+  if (v.length >= 2) v = v.substring(0,2) + '/' + v.substring(2);
+  el.value = v;
+}
+
+function sendMsg(e) {
+  e.preventDefault();
+  alert('Takk! Skilaboðin þín hafa verið send. Við svörum þér sem fyrst.');
+  e.target.reset();
+}
+</script>
+</body>
+</html>
